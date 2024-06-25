@@ -26,7 +26,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -41,8 +40,6 @@ import androidx.navigation.NavController
 import com.app.expired.MainViewModel
 import com.app.expired.NavRoute
 import com.app.expired.ui.theme.Black
-import com.app.expired.ui.theme.DarkGray
-import com.app.expired.ui.theme.Gray
 import com.app.expired.ui.theme.Green
 import com.app.expired.ui.theme.White
 
