@@ -3,6 +3,7 @@ package com.app.expired
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.expired.database.Item
@@ -12,42 +13,42 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.IOException
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 class MainViewModel(private val repository: ItemRepository): ViewModel() {
-
-    private val imageThing = Uri.EMPTY
-    private var filePath = ""
 
     private var _outputList = MutableStateFlow(emptyList<Item>())
     var outputList = _outputList.asStateFlow()
 
-    fun saveImage(context: Context, imageUri: Uri) {
+    //saved to context.filesDir() in the naming format <name>-<dd-MM-yyyy>.jpg
+    fun saveImage(context: Context, imageUri: Uri, fileName: String) {
+        if (File(context.filesDir, "$fileName.jpg").exists()){
+            try {
+                File(context.filesDir, "$fileName.jpg").delete()
+            }
+            catch (e: IOException){
+                Log.d("Viewmodel", "failed to delete")
+            }
+            catch (e: SecurityException){
+                Log.d("Viewmodel", "unable to access image directory")
+            }
+        }
         val inputStream = context.contentResolver.openInputStream(imageUri)
-        val timestamp = currentDate.format(DateTimeFormatter.ofPattern("dd_MM_yyyy"))
-        val outputStream = context.openFileOutput("$timestamp.jpg", MODE_PRIVATE)
+        val outputStream = context.openFileOutput("$fileName.jpg", MODE_PRIVATE)
         inputStream?.use { input ->
             outputStream.use { output ->
                 input.copyTo(output)
             }
         }
-        filePath = "$timestamp.jpg"
     }
-
-    /*fun getImage(context: Context){
-        val outputStream = context.openFileInput(filePath)
-        outputStream.use { image ->
-            imageThing = image
-
-        }
-    }*/
 
     fun getOutputList(){
         viewModelScope.launch(IO) { repository.getOrderedItems().collectLatest{ _outputList.tryEmit(it) } }
     }
 
-    fun addItem(name: String, expiry: String, desc: String, link: Uri){
+    fun addItem(name: String, expiry: String, desc: String, link: String){
         viewModelScope.launch {
             repository.addItem(
                 Item(
@@ -65,7 +66,7 @@ class MainViewModel(private val repository: ItemRepository): ViewModel() {
         newName: String,
         newExpiry: String,
         desc: String,
-        imageLink: Uri,
+        imageLink: String,
         name: String,
         expiry: LocalDate
     ){
@@ -81,7 +82,7 @@ class MainViewModel(private val repository: ItemRepository): ViewModel() {
         }
     }
 
-    fun deleteItem(name: String, expiry: LocalDate, desc: String, link: Uri){
+    fun deleteItem(name: String, expiry: LocalDate, desc: String, link: String){
         viewModelScope.launch {
             repository.deleteItem(
                 Item(

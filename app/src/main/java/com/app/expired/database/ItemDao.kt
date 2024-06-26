@@ -20,7 +20,8 @@ interface ItemDao {
     suspend fun editItem(
         newName: String,
         newExpiry: LocalDate,
-        desc: String, imageLink: Uri,
+        desc: String,
+        imageLink: String,
         name: String,
         expiry: LocalDate
     )

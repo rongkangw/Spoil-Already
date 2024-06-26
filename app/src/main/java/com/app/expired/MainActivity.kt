@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ExpiredTheme {
-                //initialisations(mainViewModel)
+
                 Navigation(mainViewModel)
 
             }
@@ -40,8 +40,3 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-fun initialisations(viewModel: MainViewModel){
-    //for(i in test.indices){
-    //    viewModel.addItem(test[i].name, test[i].expiry, test[i].desc, test[i].imageLink)
-    //}
-}

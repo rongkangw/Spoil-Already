@@ -17,7 +17,7 @@ class ItemRepository(private val db : ItemDatabase) {
         newName: String,
         newExpiry: LocalDate,
         desc: String,
-        imageLink: Uri,
+        imageLink: String,
         name: String,
         expiry: LocalDate
     ){

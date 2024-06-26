@@ -1,7 +1,6 @@
 package com.app.expired.views.home
 
 import android.annotation.SuppressLint
-import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -58,7 +57,7 @@ fun HomeScreen(navController: NavController, viewModel: MainViewModel){
     val showEditDialog = remember { mutableStateOf(false) }
 
     var deletedItem: Item
-    val editItem = remember { mutableStateOf(Item("", LocalDate.now(), "", Uri.EMPTY)) }
+    val editItem = remember { mutableStateOf(Item("", LocalDate.now(), "", "")) }
     var expiryColor: Color
     val output by viewModel.outputList.collectAsStateWithLifecycle()
 
@@ -169,10 +168,10 @@ fun HomeScreen(navController: NavController, viewModel: MainViewModel){
                 ){ item ->
                     expiryColor = daysFromCurrentDate(item.expiryDate)
                     OtherItemsCard(
-                        item.name,
-                        item.dateFormatted,
-                        item.imageLink,
-                        item.description,
+                        name = item.name,
+                        expiry = item.dateFormatted,
+                        imageLink = item.imageLink,
+                        desc = item.description,
                         expiryColor = expiryColor,
                         scope = scope,
                         onRemove = {
@@ -193,10 +192,10 @@ fun HomeScreen(navController: NavController, viewModel: MainViewModel){
                                 //add back deleted item on Undo
                                 if (result == SnackbarResult.ActionPerformed){
                                     viewModel.addItem(
-                                        item.name,
-                                        item.dateFormatted,
-                                        item.description,
-                                        item.imageLink
+                                        name = item.name,
+                                        expiry = item.dateFormatted,
+                                        desc = item.description,
+                                        link = item.imageLink
                                     )
                                 }
                             }

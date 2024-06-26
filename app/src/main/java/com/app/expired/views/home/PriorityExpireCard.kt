@@ -42,12 +42,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.app.expired.R
 import com.app.expired.currentDate
 import com.app.expired.database.Item
@@ -59,6 +62,7 @@ import com.app.expired.ui.theme.Red
 import com.app.expired.ui.theme.White
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import java.io.File
 import java.time.temporal.ChronoUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,23 +71,23 @@ fun PriorityExpireCard(
     item: Item,
     scope: CoroutineScope,
     onRemove: () -> Unit,
-    onEdit: () -> Unit){
-
+    onEdit: () -> Unit
+){
     val expiryColor = daysFromCurrentDate(item.expiryDate)
     val onClickExpand = remember { mutableStateOf(false) }
     val swipeState = rememberSwipeToDismissBoxState(
         initialValue = SwipeToDismissBoxValue.Settled,
         confirmValueChange = { state ->
-            if (state == SwipeToDismissBoxValue.StartToEnd){
-                scope.launch { onEdit() }
-                true
-            }
-            else{
-                if (state == SwipeToDismissBoxValue.EndToStart){
+            when (state) {
+                SwipeToDismissBoxValue.StartToEnd -> {
+                    scope.launch { onEdit() }
+                    false
+                }
+                SwipeToDismissBoxValue.EndToStart -> {
                     scope.launch { onRemove() }
                     true
                 }
-                else{
+                else -> {
                     false
                 }
             }
@@ -195,7 +199,9 @@ fun PriorityExpireCard(
                             .size(120.dp)
                             .clip(CircleShape)
                             .background(Gray),
-                        model = item.imageLink,
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(File(LocalContext.current.filesDir, item.imageLink))
+                            .build(),
                         placeholder = painterResource(R.drawable.addphoto),
                         fallback = painterResource(R.drawable.addphoto),
                         error = painterResource(R.drawable.addphoto)    ,

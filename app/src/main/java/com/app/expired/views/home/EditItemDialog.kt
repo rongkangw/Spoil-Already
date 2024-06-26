@@ -1,5 +1,6 @@
 package com.app.expired.views.home
 
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -42,19 +43,21 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.app.expired.MainViewModel
 import com.app.expired.R
 import com.app.expired.database.Item
 import com.app.expired.ui.theme.Black
 import com.app.expired.ui.theme.Gray
 import com.app.expired.ui.theme.White
+import java.io.File
 
 @Composable
 fun EditItemDialog(item: Item, onEdit: () -> Unit, onDismiss: () -> Unit, viewModel: MainViewModel){
     var name by remember { mutableStateOf(item.name) }
     var expiry by remember { mutableStateOf(item.dateFormatted) }
     var desc by remember { mutableStateOf(item.description) }
-    var imageLink by remember { mutableStateOf(item.imageLink) }
+    var newImageUri by remember { mutableStateOf(Uri.EMPTY) }
     val context = LocalContext.current
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -62,9 +65,7 @@ fun EditItemDialog(item: Item, onEdit: () -> Unit, onDismiss: () -> Unit, viewMo
         onResult = {
                 uri ->
             if (uri != null) {
-                imageLink = uri
-                viewModel.saveImage(context, uri)
-
+                newImageUri = uri
             }
             else{
                 println("FAIL image")
@@ -111,14 +112,20 @@ fun EditItemDialog(item: Item, onEdit: () -> Unit, onDismiss: () -> Unit, viewMo
                                 )
                             )
                         },
-                    model = imageLink,
+                    model = if (newImageUri != Uri.EMPTY) {
+                        newImageUri
+                    }
+                    else {
+                        ImageRequest.Builder(LocalContext.current)
+                        .data(File(LocalContext.current.filesDir, item.imageLink))
+                        .build()
+                         },
                     placeholder = painterResource(id = R.drawable.addphoto),
                     error = painterResource(id = R.drawable.addphoto),
                     fallback = painterResource(id = R.drawable.addphoto),
                     contentScale = ContentScale.Inside,
-                    contentDescription = "Add Photo",
-
-                    )
+                    contentDescription = "Add Photo"
+                )
 
                 Spacer(Modifier.height(5.dp))
 
@@ -169,7 +176,11 @@ fun EditItemDialog(item: Item, onEdit: () -> Unit, onDismiss: () -> Unit, viewMo
 
                 Row(modifier = Modifier.padding(horizontal = 50.dp)) {
 
-                    Button(colors = ButtonDefaults.buttonColors(containerColor = White, contentColor = Black),
+                    Button(
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = White,
+                            contentColor = Black
+                        ),
                         onClick = { onDismiss() })
                     {
                         Text(text = "Cancel")
@@ -177,16 +188,34 @@ fun EditItemDialog(item: Item, onEdit: () -> Unit, onDismiss: () -> Unit, viewMo
 
                     Spacer(Modifier.weight(1f))
 
-                    Button(colors = ButtonDefaults.buttonColors(containerColor = White),
+                    Button(
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = White,
+                            contentColor = Black
+                        ),
                         onClick = {
-                            viewModel.editItem(
-                                newName = name,
-                                newExpiry = expiry,
-                                desc = desc,
-                                imageLink = imageLink,
-                                name = item.name,
-                                expiry = item.expiryDate
-                            )
+                            if (newImageUri != null){
+                                viewModel.saveImage(context, newImageUri, "$name-$expiry")
+                                viewModel.editItem(
+                                    newName = name,
+                                    newExpiry = expiry,
+                                    desc = desc,
+                                    imageLink = "$name-$expiry.jpg",
+                                    name = item.name,
+                                    expiry = item.expiryDate
+                                )
+                            }
+                            else{
+                                viewModel.editItem(
+                                    newName = name,
+                                    newExpiry = expiry,
+                                    desc = desc,
+                                    imageLink = item.imageLink,
+                                    name = item.name,
+                                    expiry = item.expiryDate
+                                )
+                            }
+
                             viewModel.getOutputList()
                             onEdit()
                         })

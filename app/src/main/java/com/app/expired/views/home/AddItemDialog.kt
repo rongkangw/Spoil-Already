@@ -51,10 +51,12 @@ import com.app.expired.ui.theme.White
 
 @Composable
 fun AddItemDialog(onAdd: () -> Unit, onDismiss: () -> Unit, viewModel: MainViewModel){
+
     var name by remember { mutableStateOf("") }
     var expiry by remember { mutableStateOf("") }
     var desc by remember { mutableStateOf("") }
-    var imageLink by remember { mutableStateOf<Uri>(Uri.EMPTY) }
+    var imageLinkUri by remember { mutableStateOf<Uri>(Uri.EMPTY) }
+    var link = ""
     val context = LocalContext.current
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -62,9 +64,7 @@ fun AddItemDialog(onAdd: () -> Unit, onDismiss: () -> Unit, viewModel: MainViewM
         onResult = {
             uri ->
             if (uri != null) {
-                imageLink = uri
-                viewModel.saveImage(context, uri)
-
+                imageLinkUri = uri
             }
             else{
                 println("FAIL image")
@@ -110,7 +110,7 @@ fun AddItemDialog(onAdd: () -> Unit, onDismiss: () -> Unit, viewModel: MainViewM
                                 )
                             )
                         },
-                    model = imageLink,
+                    model = imageLinkUri,
                     placeholder = painterResource(id = R.drawable.addphoto),
                     error = painterResource(id = R.drawable.addphoto),
                     fallback = painterResource(id = R.drawable.addphoto),
@@ -168,22 +168,35 @@ fun AddItemDialog(onAdd: () -> Unit, onDismiss: () -> Unit, viewModel: MainViewM
 
                 Row(modifier = Modifier.padding(horizontal = 50.dp)) {
                     
-                    Button(colors = ButtonDefaults.buttonColors(containerColor = White, contentColor = Black),
-                        onClick = { onDismiss() })
-                    {
+                    Button(
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = White,
+                            contentColor = Black
+                        ),
+                        onClick = { onDismiss() }
+                    ) {
                         Text(text = "Cancel")
                     }
 
                     Spacer(Modifier.weight(1f))
 
-                    Button(colors = ButtonDefaults.buttonColors(containerColor = White),
+                    Button(
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = White,
+                            contentColor = Black
+                        ),
                         onClick = {
-                                    viewModel.addItem(
-                                        name,
-                                        expiry,
-                                        desc,
-                                        imageLink
-                                    )
+                            if (imageLinkUri != Uri.EMPTY){
+                                viewModel.saveImage(context, imageLinkUri, "$name-$expiry")
+                                link = "$name-$expiry.jpg"
+                            }
+
+                            viewModel.addItem(
+                                name = name,
+                                expiry = expiry,
+                                desc = desc,
+                                link = link
+                            )
                             viewModel.getOutputList()
                             onAdd()
                         })

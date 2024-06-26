@@ -13,7 +13,7 @@ data class Item(
     val name: String,
     val expiryDate: LocalDate,
     val description: String,
-    val imageLink: Uri,
+    val imageLink: String
 ) : Parcelable{
 
     val dateFormatted: String

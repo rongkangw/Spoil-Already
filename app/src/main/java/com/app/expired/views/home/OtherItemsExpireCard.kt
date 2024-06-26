@@ -41,12 +41,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.ImageLoader
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.app.expired.R
 import com.app.expired.defaultShape
 import com.app.expired.ui.theme.Black
@@ -57,13 +60,14 @@ import com.app.expired.ui.theme.Red
 import com.app.expired.ui.theme.White
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OtherItemsCard(
     name: String,
     expiry: String,
-    image: Uri? = null,
+    imageLink: String,
     desc: String,
     expiryColor: Color,
     scope: CoroutineScope,
@@ -74,17 +78,16 @@ fun OtherItemsCard(
     val onClickExpand = remember { mutableStateOf(false) }
     val swipeState = rememberSwipeToDismissBoxState(
         confirmValueChange = { state ->
-            if (state == SwipeToDismissBoxValue.StartToEnd){
-                scope.launch { onEdit() }
-                true
-            }
-            else{
-                if (state == SwipeToDismissBoxValue.EndToStart){
-                    scope.launch { onRemove() }
-
+            when (state) {
+                SwipeToDismissBoxValue.StartToEnd -> {
+                    scope.launch { onEdit() }
                     false
                 }
-                else{
+                SwipeToDismissBoxValue.EndToStart -> {
+                    scope.launch { onRemove() }
+                    true
+                }
+                else -> {
                     false
                 }
             }
@@ -169,12 +172,15 @@ fun OtherItemsCard(
 
                 Spacer(Modifier.weight(1f))
 
+                println(name + "_" + expiry + ".jpg")
                 AsyncImage(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
                         .background(DarkGray),
-                    model = image,
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(File(LocalContext.current.filesDir, imageLink))
+                        .build(),
                     contentDescription = "Product Image",
                     placeholder = painterResource(id = R.drawable.addphoto),
                     error = painterResource(id = R.drawable.addphoto),

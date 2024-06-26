@@ -17,14 +17,4 @@ class TypeConversion {
     fun dateToString(date: LocalDate): String {
         return date.toString()
     }
-
-    @TypeConverter
-    fun fromUri(value: Uri): String {
-        return value.let { value.toString() }
-    }
-
-    @TypeConverter
-    fun stringToUri(value: String): Uri {
-        return Uri.parse(value)
-    }
 }
